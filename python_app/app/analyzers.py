@@ -78,10 +78,32 @@ def analyze_cuda(temp_dir: Path) -> List[Dependency]:
             break
     return deps
 
+def analyze_python_packages(temp_dir: Path) -> List[Dependency]:
+    """
+    Detect installed Python packages by scanning for .dist-info and .egg-info directories.
+    """
+    deps: List[Dependency] = []
+    # look for Python site-packages directories
+    for site_dir in temp_dir.rglob("site-packages"):
+        # .dist-info directories
+        for dist_info in site_dir.rglob("*.dist-info"):
+            pkg = dist_info.name[:-len(".dist-info")]
+            if "-" in pkg:
+                name, version = pkg.rsplit("-", 1)
+                deps.append(Dependency(name=name, version=version, ecosystem="PyPI"))
+        # .egg-info directories
+        for egg_info in site_dir.rglob("*.egg-info"):
+            pkg = egg_info.name[:-len(".egg-info")]
+            if "-" in pkg:
+                name, version = pkg.rsplit("-", 1)
+                deps.append(Dependency(name=name, version=version, ecosystem="PyPI"))
+    return deps
+
 
 def analyze_all(temp_dir: Path) -> List[Dependency]:
-    deps = []
+    deps: List[Dependency] = []
     deps.extend(analyze_os_version(temp_dir))
+    deps.extend(analyze_python_packages(temp_dir))
     deps.extend(analyze_r_packages(temp_dir))
     deps.extend(analyze_cuda(temp_dir))
     return deps
