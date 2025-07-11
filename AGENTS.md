@@ -76,6 +76,11 @@ uv export --format=requirements.txt --output-file requirements.txt
 
 Use `uv help` to discover other available commands (e.g., `uv tree`, `uv python`, `uv build`, etc.).
 
+## Commit Guidelines
+
+- Propose a separate commit for each set of changes you make.
+- Write verbose, descriptive commit messages that follow the Conventional Commits specification (e.g., `feat: add new feature`, `fix: correct typo`). For more information, see https://www.conventionalcommits.org/.
+
 ---
 
 > **Note:** Always prefer `uv` over direct `pip`, `python`, or `python3` commands (e.g., use `uv python` or `uv run python`) to ensure consistent environments and reproducible dependency management.
