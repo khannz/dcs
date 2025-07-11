@@ -23,11 +23,15 @@ class ScanService:
         if not layer:
             raise ValueError(f"Layer with id: {layer_id} not found")
         layers.append(layer)
+        # traverse parent layers; missing parent indicates internal error (should exist)
         while layer.parentId:
+            prev_layer_id = layer.layerId
             parent_id = layer.parentId
             layer = self.cache.get_if_present(LayerKey.with_name(parent_id))
             if not layer:
-                raise ValueError(f"Layer with id: {parent_id} not found")
+                raise RuntimeError(
+                    f"Layer with id: {parent_id} not found, but it should be since it's parent for layer: {prev_layer_id}"
+                )
             layers.append(layer)
         return ImageScanResult(name=layer_id, layers=layers)
 

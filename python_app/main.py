@@ -26,5 +26,9 @@ async def scan(request: ScanRequest):
 async def image_scan(layer_id: str):
     try:
         return await scan_service.load_image_scan(layer_id)
-    except Exception as e:
+    except ValueError as e:
+        # layer not found: client error
         raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        # unexpected missing parent or other server error
+        raise HTTPException(status_code=500, detail=str(e))
