@@ -1,7 +1,7 @@
 # AGENTS
 
 This document provides guidelines for agents on handling the Python environment and project tasks
-in the `python_app` directory using the `uv` CLI tool.
+in the `python_app` directory using the `uv` CLI tool, including invoking Python via `uv`.
 
 ## Prerequisites
 
@@ -78,5 +78,6 @@ Use `uv help` to discover other available commands (e.g., `uv tree`, `uv python`
 
 ---
 
-> **Note:** Always prefer `uv` over direct `pip` or `python -m venv` commands to ensure consistent environments
-> and reproducible dependency management across all agents.
+> **Note:** Always prefer `uv` over direct `pip`, `python`, or `python3` commands (e.g., use `uv python` or `uv run python`) to ensure consistent environments and reproducible dependency management.
+> Do not use raw `pip` or a `requirements.txt`‑based workflow; use `uv pip` for all pip operations, as it fully implements the pip API within the managed environment.
+> Projects in this repo follow the `pyproject.toml` specification as the primary manifest for dependencies and configuration; rely on it rather than `requirements.txt`.
