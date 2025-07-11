@@ -1,0 +1,67 @@
+import re
+from pathlib import Path
+from typing import List
+
+from .models import Dependency
+
+OS_RELEASE_FILES = [
+    "etc/os-release",
+    "usr/lib/os-release",
+    "etc/redhat-release",
+    "etc/system-release",
+    "etc/centos-release",
+]
+
+CUDA_PATTERN = re.compile(r"usr/local/cuda-[^/]+/targets/x86_64-linux/lib/libcuda.*\.so.*")
+
+
+def analyze_os_version(temp_dir: Path) -> List[Dependency]:
+    deps: List[Dependency] = []
+    for rel in OS_RELEASE_FILES:
+        file_path = temp_dir / rel
+        if file_path.exists():
+            content = file_path.read_text(errors="ignore")
+            name = None
+            version = None
+            m = re.search(r"^ID=?\"?([^\n\"]*)", content, re.MULTILINE)
+            if m:
+                name = m.group(1).strip().lower()
+            m = re.search(r"^VERSION_ID=?\"?([^\n\"]*)", content, re.MULTILINE)
+            if m:
+                version = m.group(1).strip()
+            if name and version:
+                deps.append(Dependency(name=name, version=version, ecosystem="OS"))
+                break
+    return deps
+
+
+def analyze_r_packages(temp_dir: Path) -> List[Dependency]:
+    deps: List[Dependency] = []
+    for desc_file in temp_dir.rglob("DESCRIPTION"):
+        try:
+            text = desc_file.read_text(errors="ignore")
+        except Exception:
+            continue
+        if "Built: R" in text:
+            pkg = re.search(r"^Package:\s*([^\n]*)", text, re.MULTILINE)
+            ver = re.search(r"^Version:\s*([^\n]*)", text, re.MULTILINE)
+            if pkg and ver:
+                deps.append(Dependency(name=pkg.group(1), version=ver.group(1), ecosystem="R.Pkg"))
+    return deps
+
+
+def analyze_cuda(temp_dir: Path) -> List[Dependency]:
+    deps: List[Dependency] = []
+    for path in temp_dir.rglob("*"):
+        if CUDA_PATTERN.search(str(path)):
+            deps.append(Dependency(name="NvidiaCuda", ecosystem="Nvidia"))
+            break
+    return deps
+
+
+def analyze_all(temp_dir: Path) -> List[Dependency]:
+    deps = []
+    deps.extend(analyze_os_version(temp_dir))
+    deps.extend(analyze_r_packages(temp_dir))
+    deps.extend(analyze_cuda(temp_dir))
+    return deps
