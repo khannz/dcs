@@ -43,10 +43,20 @@ def analyze_r_packages(temp_dir: Path) -> List[Dependency]:
         except Exception:
             continue
         if "Built: R" in text:
-            pkg = re.search(r"^Package:\s*([^\n]*)", text, re.MULTILINE)
-            ver = re.search(r"^Version:\s*([^\n]*)", text, re.MULTILINE)
+            # normalize continuation lines and extract metadata
+            contents = re.sub(r"\n\s+", " ", text)
+            pkg = re.search(r"^Package:\s*([^\n]*)", contents, re.MULTILINE)
+            ver = re.search(r"^Version:\s*([^\n]*)", contents, re.MULTILINE)
+            desc = re.search(r"^Description:\s*([^\n]*)", contents, re.MULTILINE)
             if pkg and ver:
-                deps.append(Dependency(name=pkg.group(1), version=ver.group(1), ecosystem="R.Pkg"))
+                deps.append(
+                    Dependency(
+                        name=pkg.group(1),
+                        version=ver.group(1),
+                        ecosystem="R.Pkg",
+                        description=desc.group(1) if desc else None
+                    )
+                )
     return deps
 
 
