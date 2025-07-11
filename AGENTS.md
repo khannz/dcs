@@ -1,5 +1,8 @@
 # AGENTS
 
+> **NOTE:** We track current and planned development tasks in `python_app/TODO.md`.  \
+> That file is the source of truth for which feature‐parity tasks are in progress and upcoming.
+
 This document provides guidelines for agents on handling the Python environment and project tasks
 in the `python_app` directory using the `uv` CLI tool, including invoking Python via `uv`.
 
