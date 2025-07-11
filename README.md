@@ -10,6 +10,11 @@ Provides information about docker container installed packages:
  * Ruby
  * etc.
 
+The repository also contains a lightweight reference implementation of the API
+using **FastAPI**. The Python version exposes the same endpoints but relies on
+pure Python analyzers for demonstration purposes. See the `python_app` folder
+for details.
+
 # 1. How to install
 
 ### Build Jar
