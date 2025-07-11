@@ -12,7 +12,7 @@
 
 ## Current Task
 
-_None selected. Use this TODO to assign the next feature to implement._
+- [In Progress] 2. **Add runtime configuration support**
 
 ## Tasks
 

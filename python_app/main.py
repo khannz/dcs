@@ -1,19 +1,29 @@
 from fastapi import FastAPI, HTTPException
-from pathlib import Path
 
-from app.models import ScanRequest
-from app.models import ImageScanResult, LayerScanResult
+from app.config import Settings
+from app.models import ScanRequest, ImageScanResult, LayerScanResult
 from app.cache import LayerScanCache
 from app.docker_registry import DockerRegistryService
 from app.dependency_check import DependencyCheckService
 from app.scan_service import ScanService
 
+settings = Settings()
+
 app = FastAPI()
 
-cache = LayerScanCache(expire_hours=24, number_cached_scans=50)
-registry = DockerRegistryService()
+cache = LayerScanCache(
+    expire_hours=settings.cache_expire_hours,
+    number_cached_scans=settings.cache_number_cached_scans,
+)
+registry = DockerRegistryService(insecure=settings.ssl_insecure_enable)
 checker = DependencyCheckService()
-scan_service = ScanService(cache, registry, checker, Path("/tmp"))
+scan_service = ScanService(
+    cache,
+    registry,
+    checker,
+    settings.working_dir,
+    settings.concurrency,
+)
 
 @app.post("/scan", response_model=LayerScanResult)
 async def scan(request: ScanRequest):
