@@ -23,12 +23,22 @@ def analyze_os_version(temp_dir: Path) -> List[Dependency]:
             content = file_path.read_text(errors="ignore")
             name = None
             version = None
-            m = re.search(r"^ID=?\"?([^\n\"]*)", content, re.MULTILINE)
-            if m:
-                name = m.group(1).strip().lower()
-            m = re.search(r"^VERSION_ID=?\"?([^\n\"]*)", content, re.MULTILINE)
-            if m:
-                version = m.group(1).strip()
+            # parse os-release files differently from legacy release files
+            if file_path.name == "os-release":
+                m = re.search(r"^ID=?\"?([^\n\"]*)", content, re.MULTILINE)
+                if m:
+                    name = m.group(1).strip().lower()
+                m = re.search(r"^VERSION_ID=?\"?([^\n\"]*)", content, re.MULTILINE)
+                if m:
+                    version = m.group(1).strip()
+            else:
+                # legacy release files: extract name as first token and version number pattern
+                m = re.match(r"([^ ]+)", content)
+                if m:
+                    name = m.group(1).strip().lower()
+                m = re.search(r"([\d\.\-_]+)", content)
+                if m:
+                    version = m.group(1).strip()
             if name and version:
                 deps.append(Dependency(name=name, version=version, ecosystem="OS"))
                 break
