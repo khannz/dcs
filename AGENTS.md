@@ -59,9 +59,17 @@ uv run pytest
 
 ### Code formatting and linting
 
+Install the Ruff tool if you haven't already:
+
 ```bash
-uv run black .
-uv run flake8 .
+uv tool ruff
+```
+
+Use Ruff for both linting and formatting:
+
+```bash
+uv run ruff .        # lint checks
+uv run ruff --fix .  # auto-format and fix issues
 ```
 
 ### Export requirements
