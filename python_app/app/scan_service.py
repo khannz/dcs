@@ -5,6 +5,7 @@ from .models import ScanRequest, LayerScanResult, ImageScanResult, LayerKey
 from .cache import LayerScanCache
 from .docker_registry import DockerRegistryService
 from .dependency_check import DependencyCheckService
+from urllib.parse import unquote
 
 class ScanService:
     def __init__(self, cache: LayerScanCache, registry: DockerRegistryService, checker: DependencyCheckService, working_dir: Path, concurrency: int = 4):
@@ -15,6 +16,8 @@ class ScanService:
         self.working_dir = working_dir
 
     async def load_image_scan(self, layer_id: str) -> ImageScanResult:
+        # decode any percent-encoded layer identifier (as in Java URLDecoder.decode)
+        layer_id = unquote(layer_id)
         layers = []
         layer = self.cache.get_if_present(LayerKey.with_name(layer_id))
         if not layer:
@@ -29,8 +32,13 @@ class ScanService:
         return ImageScanResult(name=layer_id, layers=layers)
 
     async def scan(self, request: ScanRequest) -> LayerScanResult:
+        # decode percent-encoded names consistent with Java LayerKey URL decoding
         to_scan = request.layer
-        key = LayerKey.create(to_scan.name, to_scan.parentName)
+        name = unquote(to_scan.name)
+        parent = unquote(to_scan.parentName) if to_scan.parentName else None
+        # ensure decoded values for cache key and result tracking
+        to_scan.name, to_scan.parentName = name, parent
+        key = LayerKey.create(name, parent)
         cached = self.cache.get_if_present(key)
         if cached and cached.status != "FAILURE":
             return cached
